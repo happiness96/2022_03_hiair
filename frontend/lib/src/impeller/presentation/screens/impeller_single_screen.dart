@@ -17,13 +17,10 @@ import 'package:frontend/src/impeller/application/impeller/save/impeller_save_st
 import 'package:frontend/src/impeller/dependency_injection.dart';
 import 'package:frontend/src/impeller/domain/entities/impeller_status.dart';
 import 'package:frontend/src/impeller/presentation/screens/impeller_single_popup.dart';
-import 'package:frontend/src/impeller/presentation/screens/tablerows/impeller_loaded_row.dart';
 import 'package:frontend/src/impeller/presentation/screens/tablerows/impeller_single_loaded_row.dart';
 import 'package:frontend/src/impeller/presentation/viewmodels/barcode_notifier.dart';
 import 'package:frontend/src/impeller/presentation/viewmodels/impeller_list_notifier.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
-
-import 'impeller_popup.dart';
 
 class ImpellerSingleScreen extends ConsumerStatefulWidget {
   const ImpellerSingleScreen({
@@ -282,7 +279,7 @@ class _ImpellerSingleListWidgetState extends ConsumerState<ImpellerSingleScreen>
     return Scaffold(
       resizeToAvoidBottomInset: false,
       appBar: const SubAppBar(
-        code: 'IMP',
+        code: 'IMP_SINGLE',
       ),
       body: Stack(
         fit: StackFit.expand,
@@ -644,7 +641,7 @@ class _ImpellerSingleListWidgetState extends ConsumerState<ImpellerSingleScreen>
 
   Future<void> refreshList(ref) async {
     await ref.read(impellerStateNotifierProvider.notifier).mapEventToState(
-          ImpellerEvent.fetchListByPage(
+          ImpellerEvent.fetchSingleListByPage(
             ref.watch(impellerListNotifier).items,
             ref.watch(impellerListNotifier).page,
           ),

@@ -77,6 +77,7 @@ class Impeller extends IImpeller implements TableCellEntity {
 
   @override
   String? getProp(String key) => <String, String>{
+        "code": code,
         "wbNm": wbNm,
         "yard": yard,
         "hullNo": hullNo,
