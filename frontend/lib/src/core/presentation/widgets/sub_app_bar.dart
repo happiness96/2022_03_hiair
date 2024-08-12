@@ -9,11 +9,12 @@ import 'package:frontend/src/workorderCurrent/application/current_work_order_eve
 import 'package:frontend/src/workorderCurrent/presentation/dependency_injection.dart';
 import 'package:frontend/src/workorderCurrent/presentation/viewmodels/current_work_order_list_notifier.dart';
 import 'package:hooks_riverpod/hooks_riverpod.dart';
+import 'dart:async';
 
 final textFieldControllerYard = TextEditingController();
 final textFieldControllerHullNo = TextEditingController();
 
-class SubAppBar extends ConsumerWidget implements PreferredSizeWidget {
+class SubAppBar extends ConsumerStatefulWidget implements PreferredSizeWidget {
   const SubAppBar({
     Key? key,
     required this.code,
@@ -22,7 +23,17 @@ class SubAppBar extends ConsumerWidget implements PreferredSizeWidget {
   final String code;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SubAppBar> createState() => _SubAppBarState();
+
+  @override
+  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
+}
+
+class _SubAppBarState extends ConsumerState<SubAppBar> {
+  bool isButtonDisabled = false;
+
+  @override
+  Widget build(BuildContext context) {
     return AppBar(
       automaticallyImplyLeading: false,
       backgroundColor: Colors.transparent,
@@ -74,7 +85,7 @@ class SubAppBar extends ConsumerWidget implements PreferredSizeWidget {
               Icons.refresh,
               color: Colors.black,
             ),
-            onPressed: () => _onRefresh(context, ref),
+            onPressed: isButtonDisabled ? null : () => _onRefresh(context, ref),
             style: ElevatedButton.styleFrom(
               primary: Theme.of(context).scaffoldBackgroundColor,
               padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 18),
@@ -85,9 +96,6 @@ class SubAppBar extends ConsumerWidget implements PreferredSizeWidget {
     );
   }
 
-  @override
-  Size get preferredSize => const Size.fromHeight(kToolbarHeight);
-
   void _onTap(
       BuildContext context, WidgetRef ref, String yard, String hullNo) async {
     ref.read(workOrderListNotifier.notifier).clear();
@@ -97,7 +105,7 @@ class SubAppBar extends ConsumerWidget implements PreferredSizeWidget {
   }
 
   Future<void> searchListUpdate(ref) async {
-    if (code == 'IMP') {
+    if (widget.code == 'IMP') {
       await ref.read(impellerStateNotifierProvider.notifier).mapEventToState(
             ImpellerEvent.searchByYardHullNo(
               ref.watch(impellerListNotifier).items,
@@ -106,7 +114,7 @@ class SubAppBar extends ConsumerWidget implements PreferredSizeWidget {
               textFieldControllerHullNo.text,
             ),
           );
-    } else if (code == 'CURRENT_WORK_ORDER') {
+    } else if (widget.code == 'CURRENT_WORK_ORDER') {
       await ref
           .read(currentWorkOrderStateNotifierProvider.notifier)
           .mapEventToState(
@@ -129,14 +137,24 @@ class SubAppBar extends ConsumerWidget implements PreferredSizeWidget {
   }
 
   void _onRefresh(BuildContext context, WidgetRef ref) async {
+    setState(() {
+      isButtonDisabled = true;
+    });
+
     ref.read(workOrderListNotifier.notifier).clear();
     ref.read(currentWorkOrderListNotifier.notifier).clear();
     ref.read(impellerListNotifier.notifier).clear();
     await refreshList(ref);
+
+    Timer(const Duration(seconds: 5), () {
+      setState(() {
+        isButtonDisabled = false;
+      });
+    });
   }
 
   Future<void> refreshList(ref) async {
-    if (code == 'CURRENT_WORK_ORDER') {
+    if (widget.code == 'CURRENT_WORK_ORDER') {
       await ref
           .read(currentWorkOrderStateNotifierProvider.notifier)
           .mapEventToState(
@@ -146,9 +164,16 @@ class SubAppBar extends ConsumerWidget implements PreferredSizeWidget {
               '',
             ),
           );
-    } else if (code == 'IMP') {
+    } else if (widget.code == 'IMP') {
       await ref.read(impellerStateNotifierProvider.notifier).mapEventToState(
             ImpellerEvent.fetchListByPage(
+              ref.watch(impellerListNotifier).items,
+              ref.watch(impellerListNotifier).page,
+            ),
+          );
+    } else if (widget.code == 'IMP_SINGLE') {
+      await ref.read(impellerStateNotifierProvider.notifier).mapEventToState(
+            ImpellerEvent.fetchSingleListByPage(
               ref.watch(impellerListNotifier).items,
               ref.watch(impellerListNotifier).page,
             ),
